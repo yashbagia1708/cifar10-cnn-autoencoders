@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim  
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms  
+import os
 import random  
 
 class DataLoaderUtility:
@@ -91,7 +92,7 @@ class CNN_AutoencoderTrainer:
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)  # Set up the optimizer
         self.criterion_ae = nn.MSELoss()  # Set up the loss function for autoencoding
 
-    def train(self, epochs=1000):
+    def train(self, epochs=int(os.environ.get("EPOCHS", 1000))):
         # Training loop for 1000 epochs
         for epoch in range(epochs):
             self.optimizer.zero_grad()  # Clear old gradients
@@ -121,10 +122,14 @@ class PlotUtility:
                 else:
                     plt.scatter(embeddings[idx, 0], embeddings[idx, 1], marker=marker, edgecolors=color, facecolors='none', label=labels_map[label_name])
         plt.legend(loc='upper left')  
+        plt.savefig('unsupervised_embeddings.png', dpi=120, bbox_inches='tight')
         plt.show()  
 
 
 if __name__ == "__main__":
+    # same classes, images and starting weights on every run
+    random.seed(42)
+    torch.manual_seed(42)
     data_utility = DataLoaderUtility()
     # Get selected data (images and labels) from the DataLoaderUtility
     selected_images, selected_labels, selected_classes = data_utility.get_selected_data()

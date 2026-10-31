@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim  
 import matplotlib.pyplot as plt
 from torchvision import datasets, transforms  
+import os
 import random  
 
 class DataLoaderUtility:
@@ -15,7 +16,8 @@ class DataLoaderUtility:
         # Load the CIFAR10 training dataset applying the transformation
         self.train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
         # Extract unique classes from the dataset
-        self.unique_classes = list(set([y for _, y in self.train_dataset]))
+        # (read from the label list, not by decoding all 50,000 images)
+        self.unique_classes = sorted(set(self.train_dataset.targets))
 
     def get_selected_data(self):
         # Randomly select 3 unique classes from the dataset
@@ -99,7 +101,7 @@ class SupervisedAutoencoderTrainer:
         self.criterion_ae = nn.MSELoss()
         self.criterion_cls = nn.CrossEntropyLoss()
 
-    def train(self, epochs=1000):
+    def train(self, epochs=int(os.environ.get("EPOCHS", 1000))):
         # Training loop for 1000 epochs
         for epoch in range(epochs):
             self.optimizer.zero_grad()  # Clear gradients
@@ -134,9 +136,13 @@ class PlotUtility:
                 else:
                     plt.scatter(embeddings[idx, 0], embeddings[idx, 1], marker=marker, edgecolors=color, facecolors='none', label=labels_map[label_name])
         plt.legend(loc='upper left')  
+        plt.savefig('supervised_embeddings.png', dpi=120, bbox_inches='tight')
         plt.show()  
 
 if __name__ == "__main__":
+    # same classes, images and starting weights on every run
+    random.seed(42)
+    torch.manual_seed(42)
     data_utility = DataLoaderUtility()  
     # Retrieve selected data (images and labels) 
     selected_images, selected_labels, selected_classes = data_utility.get_selected_data()
