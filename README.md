@@ -61,11 +61,17 @@ changed.
 pip install -r requirements.txt
 python unsupervised_autoencoder.py    # downloads CIFAR-10 (170 MB) into data/ on first run
 python supervised_autoencoder.py
-EPOCHS=5 python supervised_autoencoder.py   # quick check (CI does this)
+EPOCHS=5 python supervised_autoencoder.py   # quick end-to-end check
+pytest -q                                   # model tests on random tensors (CI runs these)
 ```
 
 Each script prints the loss every 100 epochs, then saves and shows its
 embedding plot. On a laptop CPU, 1000 epochs takes a few minutes.
+
+CI doesn't download CIFAR-10: the dataset's host is too slow from GitHub's
+runners (a first attempt timed out at 70% of the download). The tests check
+the shapes of both networks, that both trainers reduce the loss, and that
+the plot is saved, all on random tensors.
 
 ## Changes since the original submission
 
