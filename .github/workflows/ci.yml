@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke-train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EPOCHS: "5"          # just proves both scripts run end to end
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cache CIFAR-10
+        uses: actions/cache@v4
+        with:
+          path: data
+          key: cifar10-v1
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision && pip install matplotlib
+      - run: python unsupervised_autoencoder.py
+      - run: python supervised_autoencoder.py
+      - run: test -s unsupervised_embeddings.png && test -s supervised_embeddings.png
